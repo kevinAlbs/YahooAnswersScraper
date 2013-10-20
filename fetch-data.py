@@ -73,7 +73,7 @@ def parseData(cat):
 						isBest = True
 					content = ans.find_all("div", class_="content")[0].get_text()
 					upvotes = ans.find_all("li", class_="rate-up")
-					
+					print ans
 					if len(upvotes) == 1:
 						#use regex to read the number of votes
 						s = upvotes[0].span.get_text()
