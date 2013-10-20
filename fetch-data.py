@@ -52,7 +52,7 @@ def parseData(cat):
 
 				#fetch page and scrape
 				print q['id']
-				conn.request("GET", "/question/index?qid=%s" % "")
+				conn.request("GET", "/question/index?qid=20100425114216AA802rx")
 				r = conn.getresponse()
 				data = r.read()
 				soup = BeautifulSoup(data)
@@ -61,14 +61,19 @@ def parseData(cat):
 				#best answer has class 'answer best'
 				#other answers just have class 'answer'
 				answers = soup.select(".answer")
-				best = soup.select(".answer .best")
+				best = soup.select(".answer.best")
+				hasBest = False
 				if len(best) == 1:
-					answers.append(best[0])
+					hasBest = True
 
 				for ans in answers:
 					#get each attribute
+					isBest = False
+					if hasBest and ans == best[0]:
+						isBest = True
 					content = ans.find_all("div", class_="content")[0].get_text()
 					upvotes = ans.find_all("li", class_="rate-up")
+					
 					if len(upvotes) == 1:
 						#use regex to read the number of votes
 						s = upvotes[0].span.get_text()
@@ -77,7 +82,7 @@ def parseData(cat):
 					else:
 						upvotes = 0
 					#Yahoo only shows downvotes when signed in... maybe I will consider trying
-					print upvotes
+					print isBest, upvotes
 
 				
 				print "Fetched"
