@@ -3,8 +3,8 @@ import httplib, urllib
 from bs4 import BeautifulSoup
 import re
 #script for retreiving 1000 questions from y/a data
-numQuestions = 5 #number of questions desired from each category
-numAllowed = 5 #number of results allowed by a single request
+numQuestions = 12000 #number of questions desired from each category
+numAllowed = 50 #number of results allowed by a single request
 catIDs = {"Business & Finance": 396545013}
 #fetches data from each category
 def fetchData(cat):
@@ -42,55 +42,66 @@ def parseData(cat):
 	f = open(fname, 'r')
 	fData = f.read()
 	jObj = json.loads(fData)
+	min_nums = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
+	num_blank = 0
 	conn = httplib.HTTPConnection("answers.yahoo.com:80")
 	for result in jObj:
-		for q in result['query']['results']['Question']:
-			#check if question has 5 or more answers
-			if(int(q['NumAnswers']) > 0): #CHANGE
-				print "Storing question: %s" % q['id']
-				#Store question into database TODO
+		if result['query']['results'] is None:
+			print "Blank question set"
+			num_blank += 1
+		else:
+			for q in result['query']['results']['Question']:
+				#check if question has 5 or more answers
+				for key in min_nums.keys():
+					if(int(q['NumAnswers']) >= key):
+						min_nums[key] += 1
+				if(int(q['NumAnswers']) >= 5): #CHANGE
+					print "Storing question: %s" % q['id']
+					#Store question into database TODO
+					
+					#fetch page and scrape
+					print q['id']
+					#20100425114216AA802rx
+					conn.request("GET", "/question/index?qid=%s" % q['id'])
+					r = conn.getresponse()
+					data = r.read()
+					soup = BeautifulSoup(data)
+					#get all answers on this page
 
-				#fetch page and scrape
-				print q['id']
-				conn.request("GET", "/question/index?qid=20100425114216AA802rx")
-				r = conn.getresponse()
-				data = r.read()
-				soup = BeautifulSoup(data)
-				#get all answers on this page
+					#best answer has class 'answer best'
+					#other answers just have class 'answer'
+					answers = soup.select(".answer")
+					best = soup.select(".answer.best")
+					hasBest = False
+					if len(best) == 1:
+						hasBest = True
 
-				#best answer has class 'answer best'
-				#other answers just have class 'answer'
-				answers = soup.select(".answer")
-				best = soup.select(".answer.best")
-				hasBest = False
-				if len(best) == 1:
-					hasBest = True
+					for ans in answers:
+						#get each attribute
+						isBest = False
+						if hasBest and ans == best[0]:
+							isBest = True
 
-				for ans in answers:
-					#get each attribute
-					isBest = False
-					if hasBest and ans == best[0]:
-						isBest = True
-					content = ans.find_all("div", class_="content")[0].get_text()
-					upvotes = ans.find_all("li", class_="rate-up")
-					print ans
-					if len(upvotes) == 1:
-						#use regex to read the number of votes
-						s = upvotes[0].span.get_text()
-						m = re.compile("^[0-9]+").match(s)
-						upvotes = int(m.group(0))
-					else:
-						upvotes = 0
-					#Yahoo only shows downvotes when signed in... maybe I will consider trying
-					print isBest, upvotes
+						content = ans.find_all("div", class_="content")[0].get_text()
+						upvotes = ans.find_all("li", class_="rate-up")
+						time_ago = ans.find_all("abbr")[0]['title']
 
-				
-				print "Fetched"
-				num_parsed += 1
-				return
+						if len(upvotes) == 1:
+							#use regex to read the number of votes
+							s = upvotes[0].span.get_text()
+							m = re.compile("^[0-9]+").match(s)
+							upvotes = int(m.group(0))
+						else:
+							upvotes = 0
+						#Yahoo only shows downvotes when signed in... maybe I will consider trying
+						print isBest, upvotes, time_ago
+					
+					print "Fetched"
+					num_parsed += 1
 	conn.close()
-
-	print "Loaded"
+	print "%d blank sets" % num_blank
+	for key in min_nums.keys():
+		print "%d or more : %d" % (key, min_nums[key])
 
 #fetchData("Business & Finance")
 parseData("Business & Finance")
