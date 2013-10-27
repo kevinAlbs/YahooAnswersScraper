@@ -1,0 +1,25 @@
+Time of Crawl: 2013-10-23 15:41:40
+Error 1062: Duplicate entry '20131022120304AA1B59s' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131021152750AAczDOQ' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131020194016AAfyzSN' for key 'PRIMARY'
+Time of Crawl: 2013-10-23 15:54:18
+Error 1062: Duplicate entry '20131022120304AA1B59s' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131021152750AAczDOQ' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131020194016AAfyzSN' for key 'PRIMARY'
+Time of Crawl: 2013-10-23 16:02:17
+Error 1062: Duplicate entry '20131016112003AA6uWl3' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131004032320AAgSa5g' for key 'PRIMARY'
+Time of Crawl: 2013-10-23 16:39:20
+Error 1062: Duplicate entry '20131023024336AAMFQPe' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131020062626AAmlZRZ' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131020053956AA9BwnU' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131019081905AAubdIv' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131016212018AA3oAS0' for key 'PRIMARY'
+Time of Crawl: 2013-10-23 20:18:40
+Time of Crawl: 2013-10-23 20:38:18
+Error 1062: Duplicate entry '20131022071023AALthNw' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131021132404AA3DtrZ' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131021130833AAumFwT' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131020203224AA43wVn' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131020164433AAfSl1X' for key 'PRIMARY'
+Error 1062: Duplicate entry '20131020160559AAbiGCq' for key 'PRIMARY'
