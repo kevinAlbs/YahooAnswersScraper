@@ -21,7 +21,6 @@ HOST = <Your MySQL host>
 USER = <Your MySQL username>
 PW = <Your MySQL password>
 DB = <The database containing the questions/answers tables>
-
 ```
 
 Also, make any necessary changes to the numQuestions variable to specify how many questions you would like fetched.
@@ -33,10 +32,12 @@ Also, make any necessary changes to the numQuestions variable to specify how man
 python scrape.py -get=[questions|answers] -category=["Business & Finance"|"Health"|"Travel"|"Sports"|"Home & Garden"|"Entertainment & Music"|<custom category>]  [-num_questions=<number>] [-min_num_answers=<number>]
 ```
 
-- get: tells whether you want to get questions or answers. To get answers, you first have to fetch the questions.
-- category: the category from which you wish to fetch. This needs to be one of the six included, or you can find the category id yourself and add it to the catIDs dictionary.
-- num_questions: the number of total questions you want to fetch when using -get=questions.
-- min_num_answers: setting this to a number <b>n</b> will only parse questions having at least <b>n</b> answers. This can be useful in filtering unanswerered questions.
+- <b>get</b>: tells whether you want to get questions or answers. To get answers, you first have to fetch the questions.
+- <b>category</b>: the category from which you wish to fetch. This needs to be one of the six included, or you can find the category id yourself and add it to the catIDs dictionary.
+- <b>num_questions</b>: the number of total questions you want to fetch when using -get=questions.
+- <b>min_num_answers</b>: setting this to a number <b>n</b> will only parse questions having at least <b>n</b> answers. This can be useful in filtering unanswerered questions.
+
+First fetch the questions, then fetch the answers.
 
 ###Fetching Questions
 Example for fetching questions from "Sports" category
@@ -59,19 +60,46 @@ This will read all of the questions from data/Sports.json and write to your MySQ
 ##Errors
 Sometimes Yahoo Answers returns duplicate question ids causing MySQL errors on insertion. These errors are written in the errors.txt file, but should not effect the running of the program since the duplicates are ignored.
 
-##Data Structure
-TODO
+##MySQL Tables
+There are two tables, one for questions, one for answers. Here is a brief description of some of the columns:
+###Question
+```
+id - Yahoo Answers question id
+type - Resolved, Open, etc.
+subject
+content
+datetime - date posted
+specific_category
+category_id
+user_id
+user_nickname
+num_answers 
+num_comments
+chosen_answer_id
+chosen_answer_timestamp
+chosen_answer_award_timestamp
+category
+```
+###Answer
+```
+arbitrary_id - an auto-incrementing id just to differentiate the answers.
+time_posted
+content
+upvotes - the number of thumbs up the answer got (as of now you cannot see thumbs down without logging in, I hope to get that later)
+is_best - whether this was marked the best answer
+qid - the question id of which this is the answer to
+```
 
 ##Implementation
 It seems that the YQL table for the Yahoo Answers data only allows 50 questions to be returned at a single time. Therefore, this script loops to fetch 50 questions at a time until your desired amount is reached. This is fetched all into the data directory. When fetching questions, the data will go into:
 
-'''
+```
 data/<category name>.json
-'''
+```
 
 The reason that the questions are stored locally is to reduce the API calls to Yahoo since they are limited. This way, once you fetch the question data, you do not have to call the API again.
 
-Once questions are stored the next thing to do is fetch the answers.
+Once questions are stored the next thing to do is fetch the answers. Some answer data is not accessible by the API (specifically, number of thumbs up). Also, the API limits would make it impractical to use the API to fetch a large amount of questions. Instead, for each question the corresponding web page is scraped using BeautifulSoup to get the answer data. The answers are stored directly into the database.
 
 <hr/>
 ##Ideas:
