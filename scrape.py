@@ -12,8 +12,9 @@ from time import gmtime, strftime
 
 
 #config globals
-numQuestions = 12000 #number of questions desired from each category
+numQuestions = 1000 #number of questions desired from each category
 numAllowed = 50 #number of results allowed by a single request (do not increase unless YQL starts allowing more than 50 to be returned per request)
+minNumAnswers = 0 #the minimum number of answers you want each question parsed to have (only used in parseData)
 
 HOST = "localhost"
 USER = "root"
@@ -26,7 +27,7 @@ catIDs["Health"] = 396545018
 catIDs["Travel"] = 396545469
 catIDs["Sports"] = 396545213
 catIDs["Home & Garden"] = 396545394
-catIDs["Entertainment & Music" = 396545016
+catIDs["Entertainment & Music"] = 396545016
 
 '''
 Current Categories:
@@ -48,13 +49,28 @@ Also useful to double check is using the online YQL console they provide: http:/
 
 '''
 
+def printHelp(error=False):
+	if(error):
+		print "Error: %s\n" % error
+	print '''Usage:
+	python scrape.py -get=[questions|answers] -category=["Business & Finance"|"Health"|"Travel"|"Sports"|"Home & Garden"|"Entertainment & Music"|<custom category>]
+
+	More information can be found in the documentation in the readme.md file
+	'''
+
 
 #fetches data from each category
 def fetchData(cat):
 	global numQuestions, numAllowed, catIDs
-	print "Fetching from %s" % cat
+	print "Fetching %d questions from category: %s" % (numQuestions, cat)
 	fname = "data/%s.json" % cat
-	f = open(fname, 'w')
+	f = None
+	try:
+		f = open(fname, 'w')
+	except IOError, e:
+		print "Could not open file \"%s\" for writing\n%s" % (fname, e.args[1])
+		sys.exit(1)
+
 	f.write("[")
 	first = True
 	numSteps = int(numQuestions / numAllowed) #max of 50 can be retrieved from public API (or so I think)
@@ -69,25 +85,40 @@ def fetchData(cat):
 			f.write(",")
 		first = False
 		f.write(data)
-		print "%d of %d completed" % (i+1, numSteps)
+		print "%d of %d sets completed" % (i+1, numSteps)
 	f.write("]")
 	f.close()
 	conn.close()
-	print "File %s is complete" % fname 
+	print "File \"%s\" is complete" % fname 
 
-jObj = [] #tmp
-soup = []
 def parseData(cat):
-	global jObj, soup, HOST, USER, PW, DB, numQuestions
-	print "Parsing %s" % cat
+	global jObj, soup, HOST, USER, PW, DB, numQuestions, minNumAnswers
+	print "Fetching answers for category: %s" % cat
+	if(minNumAnswers > 0):
+		print "Requiring questions have at least %d answers" % minNumAnswers
 	num_parsed = 0
 	fname = "data/%s.json" % cat
-	f = open(fname, 'r')
-	err = open("errors.txt", "a");
-	err.write("Time of Crawl: %s\n" % strftime("%Y-%m-%d %H:%M:%S", gmtime()))
+	f = None
+	err = None
+
+	try:
+		f = open(fname, 'r')
+	except IOError, e:
+		print "Could not open file \"%s\" for reading\n%s" % (fname, e.args[1])
+		sys.exit(1)
+	try:
+		err = open("errors.txt", 'a')
+	except IOError, e:
+		print "Could not open \"errors.txt\" for writing\n%s" % (e.args[1])
+		sys.exit(1)
+	
+	err.write("Time of Execution: %s\n" % strftime("%Y-%m-%d %H:%M:%S", gmtime()))
 	fData = f.read()
 	jObj = json.loads(fData)
-	min_nums = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
+	total_parsed = 0
+	min_nums = {}
+	for i in range(minNumAnswers):
+		min_nums[(i+1)] = 0
 	num_blank = 0
 	conn = httplib.HTTPConnection("answers.yahoo.com:80")
 	sqlCon = None
@@ -102,15 +133,16 @@ def parseData(cat):
 				for q in result['query']['results']['Question']:
 					try:
 						#check if question has 5 or more answers
+						total_parsed += 1
 						for key in min_nums.keys():
 							if(int(q['NumAnswers']) >= key):
 								min_nums[key] += 1
-						if(int(q['NumAnswers']) >= 5):
+						if(int(q['NumAnswers']) >= minNumAnswers):
 							print "Processing question %d" % (count)
 							count += 1
 							print "Storing question: %s" % q['id']
 							#Store question into database
-							#Please excuse the following code, I am relatively new to Python and did not know of a nice way to prepare MySQL statments... will hopefully clean
+							#Please excuse the following code, I am relatively new to Python and did not know of a nicer way to prepare MySQL statments... will hopefully clean
 							d = {}
 							d['id'] = _mysql.escape_string(q['id'])
 							d['type'] = _mysql.escape_string(q['type'])
@@ -180,6 +212,7 @@ def parseData(cat):
 						err.write("\n")
 						print "MySQL error occured"
 	except _mysql.Error, e:
+		print "Could not connect to MySQL, check the config variables"
 		print "Error %d: %s" % (e.args[0], e.args[1])
 		sys.exit(1)
 	finally:
@@ -188,27 +221,57 @@ def parseData(cat):
 	conn.close()
 	err.close()
 	f.close()
-	print "Finished"
-	print "%d blank sets" % num_blank
+	print "Finished -- Statistics"
+	print "There were %d blank sets of questions" % num_blank
+	print "-" * 40
+	print "Parsed a total of %d questions" % (total_parsed)
 	for key in min_nums.keys():
-		print "%d or more : %d" % (key, min_nums[key])
+		print "%d questions had %d or more answers" % (min_nums[key], key)
+	print "Check your MySQL tables for the data"
 
+def init():
+	global catIDs, numQuestions, minNumAnswers
 
-#fetchData("Business & Finance")
-#parseData("Business & Finance")
+	if len(sys.argv) == 2:
+		m = re.compile("^\-+[hH]").match(sys.argv[1])
+		if m:
+			printHelp()
+			sys.exit(0)
 
-#fetchData("Health")
-#parseData("Health")
+	cat = None
+	qa = None
 
-#fetchData("Travel")
-#parseData("Travel")
+	#check args
+	catRe = re.compile("^\-+category=(.+$)")
+	qaRe = re.compile("^\-+get=(questions|answers)", re.I)
+	numQRe = re.compile("^\-+num_questions=([0-9]+)")
+	numARe = re.compile("^\-+min_num_answers=([0-9]+)", re.I)
+	for arg in sys.argv:
+		m = catRe.match(arg)
+		if m:
+			cat = m.group(1)
+		m = qaRe.match(arg)
+		if m:
+			qa = m.group(1)
+		m = numQRe.match(arg)
+		if m:
+			numQuestions = int(m.group(1))
+		m = numARe.match(arg)
+		if m:
+			minNumAnswers = int(m.group(1))
 
-#fetchData("Sports")
-#parseData("Sports")
+	if cat is None or qa is None:
+		printHelp("Incorrect arguments")
+		sys.exit(1)
 
-#fetchData("Home & Garden")
-#parseData("Home & Garden")
+	if not (cat in catIDs):
+		printHelp("Category \"%s\" is not in the catIDs" % cat)
+		sys.exit(1)
 
-#fetchData("Entertainment & Music")
-#parseData("Entertainment & Music")
+	#good to go
+	if qa == "questions":
+		fetchData(cat)
+	elif qa == "answers":
+		parseData(cat)
 
+init()

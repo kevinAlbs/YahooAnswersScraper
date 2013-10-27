@@ -3,14 +3,40 @@
 This python script is for fetching data about questions and answers from [Yahoo Answers](http://answers.yahoo.com). It uses the [Yahoo Answers API](http://developer.yahoo.com/answers/) to fetch questions from a single category at a time. 
 
 ##Prerequisites
-You need the Python libraries [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/) as well as [MySQLDB](http://sourceforge.net/projects/mysql-python/)
+You need Python installed (I had version 2.7.3) and the Python libraries [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/) as well as [MySQLDB](http://sourceforge.net/projects/mysql-python/)
+
+You need MySQL installed.
+
+##Setup
+First, set up your MySQL database which will be used to store the final data. A creation for the two tables (questions and answers) can be found in the file:
+
+```
+mysql-db-setup.sql
+```
+
+Import these to create the necessary tables, and then edit the lines in the scrape.py file to match your database:
+
+```
+HOST = <Your MySQL host>
+USER = <Your MySQL username>
+PW = <Your MySQL password>
+DB = <The database containing the questions/answers tables>
+
+```
+
+Also, make any necessary changes to the numQuestions variable to specify how many questions you would like fetched.
 
 ##Usage
 ###Summary
 
 ```
-python scrape.py -get=[questions|answers] -category=["Business & Finance"|"Health"|"Travel"|"Sports"|"Home & Garden"|"Entertainment & Music"|<custom category>]
+python scrape.py -get=[questions|answers] -category=["Business & Finance"|"Health"|"Travel"|"Sports"|"Home & Garden"|"Entertainment & Music"|<custom category>]  [-num_questions=<number>] [-min_num_answers=<number>]
 ```
+
+- get: tells whether you want to get questions or answers. To get answers, you first have to fetch the questions.
+- category: the category from which you wish to fetch. This needs to be one of the six included, or you can find the category id yourself and add it to the catIDs dictionary.
+- num_questions: the number of total questions you want to fetch when using -get=questions.
+- min_num_answers: setting this to a number <b>n</b> will only parse questions having at least <b>n</b> answers. This can be useful in filtering unanswerered questions.
 
 ###Fetching Questions
 Example for fetching questions from "Sports" category

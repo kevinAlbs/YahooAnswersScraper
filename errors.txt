@@ -23,3 +23,13 @@ Error 1062: Duplicate entry '20131021130833AAumFwT' for key 'PRIMARY'
 Error 1062: Duplicate entry '20131020203224AA43wVn' for key 'PRIMARY'
 Error 1062: Duplicate entry '20131020164433AAfSl1X' for key 'PRIMARY'
 Error 1062: Duplicate entry '20131020160559AAbiGCq' for key 'PRIMARY'
+Time of Crawl: 2013-10-27 19:09:27
+Time of Crawl: 2013-10-27 19:15:15
+Time of Execution: 2013-10-27 19:38:07
+Time of Execution: 2013-10-27 19:38:26
+Time of Execution: 2013-10-27 19:38:39
+Time of Execution: 2013-10-27 19:39:05
+Time of Execution: 2013-10-27 19:39:12
+Time of Execution: 2013-10-27 19:39:17
+Time of Execution: 2013-10-27 19:39:33
+Time of Execution: 2013-10-27 19:40:19
