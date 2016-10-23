@@ -1,4 +1,5 @@
-#Yahoo Answers Scraper
+## !!! Important: The Yahoo Answers API is now deprecated and this code no longer functions !!!
+#Yahoo Answers Scraper [Outdated]
 
 This python script is for fetching data about questions and answers from [Yahoo Answers](http://answers.yahoo.com). It uses the [Yahoo Answers API](http://developer.yahoo.com/answers/) to fetch questions from a single category at a time. 
 
